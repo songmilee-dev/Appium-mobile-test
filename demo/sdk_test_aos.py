@@ -9,27 +9,13 @@ from appium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 
 from demo.util.matchers import ImageMatcher
-from demo.util.time_series import TimeSeries
 
 
 class DevPlayAndroidTest(unittest.TestCase):
-    capture_dir = os.path.join(os.path.dirname(__file__), '/capture')
-
-    def setImgDirPath(self):
-        img_dir = '%s/img/' % os.getcwd()
-        self.cap_dir = img_dir + 'device_img/'
-        self.temp_dir = img_dir + 'search_img/aos/'
-
     def setUp(self):
-        self.setImgDirPath()
-
         # set path
         app = os.path.join(os.path.dirname(__file__), '../app', 'sdk_test.apk')
         app = os.path.abspath(app)
-
-        #set up util
-        self.matcher = ImageMatcher()
-        self.ts = TimeSeries()
 
         # set up appium
         self.driver = webdriver.Remote(
@@ -44,32 +30,37 @@ class DevPlayAndroidTest(unittest.TestCase):
                 'appActivity': 'com.devsisters.plugin.OvenUnityPlayerActivity',
             })
 
+        self.matcher = ImageMatcher(self.driver)
+
     def testSDKLogin(self):
         # 최고 20초 대기
         driver = self.driver
         wait = WebDriverWait(driver, timeout=30)
+        time.sleep(5)
 
         # write the selenium by the test scenario
         try:
-            self.findAppStartButton(driver)
+            self.findAppStartButton()
             self.findProjectSampleButton()
-
+            self.tapAgeTestButtonAndConfirm()
+            self.confirmAgeTest()
+            self.tapPrivacyPolicy()
+            self.tapPermissionNoti()
+            self.tapPermission()
+            self.tapGuestLogin()
+            self.findMid()
         except Exception as e:
             print(e)
 
-    def findAppStartButton(self, driver):
+    def findAppStartButton(self):
         print("task one")
 
         print("swipes")
-        # 아래에서 위로 변하는 좌표를 줘야 swipe가 발생함
-        driver.swipe(500, 900, 100, 100)
+        # 아래에서 위로 변하는 좌표를 줘야 swipe 발생함
+        self.driver.swipe(800, 900, 500, 100)
+        time.sleep(2)
 
-        screenshot = '%s-screenshot.png' % self.ts.makeTimeSeriesName()
-
-        print(self.cap_dir + screenshot)
-        driver.save_screenshot(self.cap_dir+screenshot)
-
-        center = self.matcher.detectImage(self.cap_dir + screenshot, self.temp_dir + '1.jpg')
+        center = self.matcher.findTemplateFromScreenshot('1.jpg')
         print(center)
 
         self.driver.tap([center])
@@ -79,15 +70,79 @@ class DevPlayAndroidTest(unittest.TestCase):
     def findProjectSampleButton(self):
         print("task two")
 
-        screenshot = '%s-screenshot.png' % self.ts.makeTimeSeriesName()
-        self.driver.save_screenshot(self.cap_dir + screenshot)
-
-        center = self.matcher.detectImage(self.cap_dir + screenshot, self.temp_dir + "2.jpg")
+        center = self.matcher.findTemplateFromScreenshot("2.jpg")
 
         print("task two center", center)
 
         self.driver.tap([center])
         time.sleep(3)
+
+    def tapAgeTestButtonAndConfirm(self):
+        print("tap Age Test Button and Confirm")
+        self.tapAgeTest()
+
+    def tapAgeTest(self):
+        print("Age test")
+
+        center = self.matcher.findTemplateFromScreenshot("3.png")
+        print(center)
+        self.driver.tap([center])
+
+        time.sleep(3)
+
+    def confirmAgeTest(self):
+        print("Confirm Age Test")
+
+        center = self.matcher.findTemplateFromScreenshot("4.jpg")
+        print(center)
+        self.driver.tap([center])
+
+        time.sleep(3)
+
+    def tapPrivacyPolicy(self):
+        print("Privacy Policy")
+
+        center = self.matcher.findTemplateFromScreenshot("5.jpg")
+        print(center)
+        self.driver.tap([center])
+
+        time.sleep(3)
+
+    def tapPermissionNoti(self):
+        print("Permission Noti")
+        time.sleep(5)
+
+        center = self.matcher.findTemplateFromScreenshot("6.png")
+        print(center)
+
+        new_center = (center[0], center[1] + 100)
+        self.driver.tap([new_center])
+        time.sleep(3)
+
+    def tapPermission(self):
+        print("Tap Permission")
+
+        center = self.matcher.findTemplateFromScreenshot("7.png")
+        self.driver.tap([center])
+        time.sleep(3)
+
+    def tapGuestLogin(self):
+        print("Guest login")
+
+        center = self.matcher.findTemplateFromScreenshot("8.jpg")
+        self.driver.tap([center])
+        time.sleep(3)
+
+    def findMid(self):
+        print("Find Mid")
+
+        try:
+            center = self.matcher.findTemplateFromScreenshot("9.jpg")
+            print(center)
+            time.sleep(5)
+        except Exception as e:
+            print("Cannot Find Mid", e)
+
 
     def tearDown(self):
         self.driver.quit()
